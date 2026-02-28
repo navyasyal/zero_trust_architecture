@@ -1,35 +1,57 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    environment {
+        NODE_ENV = 'production'
     }
 
-    stage('Node Version') {
-      steps {
-        bat 'node -v'
-        bat 'npm -v'
-      }
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Backend - Install Dependencies') {
+            steps {
+                dir('server') {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Frontend - Install Dependencies') {
+            steps {
+                dir('frontend') {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Frontend - Build') {
+            steps {
+                dir('frontend') {
+                    bat 'npm run build'
+                }
+            }
+        }
+
+        stage('Backend - Start Check') {
+            steps {
+                dir('server') {
+                    bat 'node -v'
+                }
+            }
+        }
     }
 
-    stage('Install') {
-      steps {
-        bat 'npm install'
-      }
+    post {
+        success {
+            echo 'Build Successful 🚀'
+        }
+        failure {
+            echo 'Build Failed ❌'
+        }
     }
-
-    stage('Test') {
-      steps {
-        bat 'echo Skipping tests'
-      }
-    }
-  }
-
-  post {
-    success { echo '✅ SUCCESS' }
-    failure { echo '❌ FAILURE' }
-  }
 }
